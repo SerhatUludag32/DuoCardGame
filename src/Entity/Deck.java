@@ -22,6 +22,7 @@ public class Deck {
         return null;
     }
 
+
     public void addCard(Card card) {
         cards.add(card);
     }

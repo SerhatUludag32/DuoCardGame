@@ -9,4 +9,8 @@ public class DrawnPile extends Deck {
     public Card drawCard() {
         return draw();
     }
+
+    public void clear() {
+        cards.clear();
+    }
 }

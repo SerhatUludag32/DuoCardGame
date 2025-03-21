@@ -11,4 +11,8 @@ public class DiscardPile extends Deck {
         }
         return null;
     }
+
+    public void clear() {
+        cards.clear();
+    }
 }

@@ -26,9 +26,16 @@ public class DeckGenerator {
         for (int i = 0; i < 4; i++) {
             cards.add(new WildCard());
             cards.add(new WildDrawFourCard());
-            cards.add(new ShuffleHandsCard());
-        }
 
+        }
+    cards.add(new ShuffleHandsCard());
+
+        System.out.println("[DEBUG] 🃏 Printing full deck content:");
+        for (Card card : cards) {
+            System.out.println("  - " + card);
+        }
+        System.out.println("[DEBUG] Total cards generated: " + cards.size());
         return cards;
     }
 }
+

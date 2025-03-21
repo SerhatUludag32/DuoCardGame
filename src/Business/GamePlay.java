@@ -15,12 +15,14 @@ public class GamePlay implements GameMediator {
     public GamePlay(List<Player> players) {
         this.game = new Game(players);
         this.drawnPile = new DrawnPile();
+
         this.discardPile = new DiscardPile();
         this.currentRound = new Round();
         this.currentIndex = 0;
     }
 
     private boolean debug = true;
+
 
     private void debugPrint(String msg) {
         if (debug) {
@@ -38,6 +40,7 @@ public class GamePlay implements GameMediator {
     }
 
     public void initializeDeck(List<Card> cards) {
+        drawnPile.clear();
         drawnPile.addCards(cards);
         drawnPile.shuffle();
     }
@@ -148,6 +151,7 @@ public class GamePlay implements GameMediator {
             debugPrint("=======================\n");
 
             resetPlayerHands();
+            discardPile.clear();
             initializeDeck(DeckGenerator.generateStandardDuoDeck());
             debugPrint("Draw pile before dealing: " + drawnPile.getCards().size());
             debugPrint("Discard pile before dealing: " + discardPile.getCards().size());

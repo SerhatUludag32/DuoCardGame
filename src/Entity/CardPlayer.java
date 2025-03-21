@@ -7,12 +7,32 @@ import java.util.Map;
 
 public class CardPlayer {
     public static Card choosePlayableCard(Hand hand, Card topCard) {
+        List<Card> playable = new ArrayList<>();
+
         for (Card card : hand.getCards()) {
             if (card.canBePlayedOn(topCard)) {
-                return card;
+                playable.add(card);
             }
         }
-        return null;
+
+        if (playable.isEmpty()) return null;
+
+        // Try to find the highest-numbered NumberCard
+        Card best = null;
+        int max = -1;
+        for (Card card : playable) {
+            if (card instanceof NumberCard numberCard) {
+                if (numberCard.getNumber() > max) {
+                    max = numberCard.getNumber();
+                    best = numberCard;
+                }
+            }
+        }
+
+        if (best != null) return best;
+
+        // Fallback: just return the first playable action/wild card
+        return playable.get(0);
     }
 
     public static CardColor chooseMostCommonColor(Hand hand) {

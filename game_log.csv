@@ -1,17 +1,46 @@
 Round, Player 1, Player 2, Player 3
-Round 1, 0, 0, 21
-Round 2, 0, 0, 156
-Round 3, 71, 0, 156
-Round 4, 71, 99, 156
-Round 5, 179, 99, 156
-Round 6, 179, 162, 156
-Round 7, 179, 162, 193
-Round 8, 179, 276, 193
-Round 9, 179, 276, 304
-Round 10, 179, 426, 304
-Round 11, 179, 497, 304
-Round 12, 209, 497, 304
-Round 13, 209, 497, 388
-Round 14, 209, 497, 444
-Round 15, 209, 497, 589
+Round 1, 0, 0, 46
+Round 2, 0, 106, 46
+Round 3, 0, 209, 46
+Round 4, 55, 209, 46
+Round 5, 55, 244, 46
+Round 6, 69, 244, 46
+Round 7, 69, 244, 251
+Round 8, 69, 244, 314
+Round 9, 82, 244, 314
+Round 10, 82, 244, 523
 Winner, Alp
+Round, Player 1, Player 2, Player 3
+Round 1, 0, 201, 0
+Round 2, 0, 268, 0
+Round 3, 0, 506, 0
+Winner, Alp
+Round, Player 1, Player 2, Player 3
+Round 1, 141, 0, 0
+Round 2, 141, 157, 0
+Round 3, 141, 157, 117
+Round 4, 141, 157, 153
+Round 5, 306, 157, 153
+Round 6, 306, 157, 242
+Round 7, 306, 278, 242
+Round 8, 306, 350, 242
+Round 9, 355, 350, 242
+Round 10, 355, 376, 242
+Round 11, 355, 450, 242
+Round 12, 355, 450, 374
+Round 13, 355, 542, 374
+Winner, Yusuf
+Round, Player 1, Player 2, Player 3
+Round 1, 0, 93, 0
+Round 2, 108, 93, 0
+Round 3, 277, 93, 0
+Round 4, 277, 93, 80
+Round 5, 277, 186, 80
+Round 6, 277, 297, 80
+Round 7, 277, 390, 80
+Round 8, 277, 390, 234
+Round 9, 375, 390, 234
+Round 10, 485, 390, 234
+Round 11, 485, 450, 234
+Round 12, 485, 560, 234
+Winner, Yusuf
