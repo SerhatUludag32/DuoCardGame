@@ -8,7 +8,7 @@ public interface GameMediator {
     void reverseDirection();
     void setColor(CardColor color);
     Player getNextPlayer(Player currentPlayer);
-    void shuffleHands();
+    void shuffleHands(Player currentPlayer);
     Round getCurrentRound();
     Turn getCurrentTurn();
 }

@@ -111,19 +111,41 @@ public class GamePlay implements GameMediator {
     }
 
     @Override
-    public void shuffleHands() {
+    public void shuffleHands(Player playedBy) {
         List<Player> players = game.getPlayers();
-        List<Hand> hands = new ArrayList<>();
+
+        // 1. Collect all cards from every player
+        List<Card> shufflePile = new ArrayList<>();
         for (Player p : players) {
-            hands.add(p.getHand());
+            shufflePile.addAll(p.getHand().getCards());
+            p.resetHand();  // clear each player's hand
         }
 
-        Collections.shuffle(hands);
-        for (int i = 0; i < players.size(); i++) {
-            players.get(i).resetHand();
-            players.get(i).getHand().addCards(hands.get(i).getCards());
+        // 2. Shuffle the pile
+        Collections.shuffle(shufflePile);
+
+        // 3. Determine starting player (next to the left)
+        int currentIndex = getNextPlayerIndex(game.getPlayers().indexOf(playedBy));
+
+        // 4. Deal cards one-by-one in current round direction
+        while (!shufflePile.isEmpty()) {
+            Player currentPlayer = players.get(currentIndex);
+            Card drawn = shufflePile.removeFirst();
+            currentPlayer.getHand().addCard(drawn);
+
+            currentIndex = getNextPlayerIndex(currentIndex);
         }
     }
+
+    private int getNextPlayerIndex(int fromIndex) {
+        int size = game.getPlayers().size();
+        if (currentRound.getDirection() == RoundDirection.LEFT) {
+            return (fromIndex - 1 + size) % size;
+        } else {
+            return (fromIndex + 1) % size;
+        }
+    }
+
 
     private void reshuffleFromDiscard() {
         Card topCard = discardPile.getTopCard();
@@ -147,7 +169,7 @@ public class GamePlay implements GameMediator {
             currentIndex = 0;
 
             debugPrint("\n=======================");
-            debugPrint("🔄 STARTING ROUND " + game.getRounds().size());
+            debugPrint("STARTING ROUND " + game.getRounds().size());
             debugPrint("=======================\n");
 
             resetPlayerHands();
@@ -220,10 +242,13 @@ public class GamePlay implements GameMediator {
                     debugPrint("✅ Played: " + toPlay);
 
                     if (toPlay instanceof ActionCard actionCard) {
-                        actionCard.action(this, currentPlayer);
+                        actionCard.action(this, currentPlayer); // may call setColor
                     }
 
-                    currentRound.getTurn().setTurnColor(toPlay.getColor());
+                    // ✅ Don't overwrite chosen color from Wild/ShuffleHands
+                    if (!(toPlay instanceof WildCard)) {
+                        currentRound.getTurn().setTurnColor(toPlay.getColor());
+                    }
 
                     if (currentPlayer.isHandEmpty()) break;
 

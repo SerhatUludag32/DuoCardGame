@@ -2,9 +2,11 @@ package Entity;
 
 import Interface.GameMediator;
 
+import java.awt.*;
+
 public class WildCard extends ActionCard {
-    public WildCard() {
-        super(50, null); // Initially null or NONE — will be set on play
+    public WildCard(CardColor color) {
+        super(50, color); // Initially null or NONE — will be set on play
     }
 
     @Override

@@ -3,8 +3,8 @@ package Entity;
 import Interface.GameMediator;
 
 public class WildDrawFourCard extends ActionCard {
-    public WildDrawFourCard() {
-        super(50, null);
+    public WildDrawFourCard(CardColor color) {
+        super(50, color);
     }
 
     @Override

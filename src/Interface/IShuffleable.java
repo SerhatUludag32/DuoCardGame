@@ -6,3 +6,4 @@ import java.util.List;
 public interface IShuffleable {
     void shuffleHands(List<Player> players);
 }
+

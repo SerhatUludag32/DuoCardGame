@@ -1,38 +1,55 @@
 package Entity;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CardPlayer {
     public static Card choosePlayableCard(Hand hand, Card topCard) {
         List<Card> playable = new ArrayList<>();
+        List<NumberCard> numberCards = new ArrayList<>();
+        List<Card> otherPlayable = new ArrayList<>();
+        WildDrawFourCard wildDrawFour = null;
+
+        CardColor currentColor = topCard.getColor();
 
         for (Card card : hand.getCards()) {
             if (card.canBePlayedOn(topCard)) {
                 playable.add(card);
+
+                if (card instanceof NumberCard numberCard) {
+                    numberCards.add(numberCard);
+                } else if (card instanceof WildDrawFourCard wdf) {
+                    wildDrawFour = wdf; // only one WildDrawFour expected
+                } else {
+                    otherPlayable.add(card);
+                }
             }
         }
 
         if (playable.isEmpty()) return null;
 
-        // Try to find the highest-numbered NumberCard
-        Card best = null;
-        int max = -1;
-        for (Card card : playable) {
-            if (card instanceof NumberCard numberCard) {
-                if (numberCard.getNumber() > max) {
-                    max = numberCard.getNumber();
-                    best = numberCard;
-                }
-            }
+        // 1️⃣ If any NumberCard playable, return highest
+        if (!numberCards.isEmpty()) {
+            return numberCards.stream()
+                    .max(Comparator.comparingInt(NumberCard::getNumber))
+                    .orElse(numberCards.getFirst());
         }
 
-        if (best != null) return best;
+        // 2️⃣ If color-matching cards exist, WildDrawFour is NOT allowed
+        boolean hasColorMatch = hand.getCards().stream()
+                .anyMatch(card -> card.getColor() == currentColor && card.canBePlayedOn(topCard) && !(card instanceof WildDrawFourCard));
 
-        // Fallback: just return the first playable action/wild card
-        return playable.get(0);
+        if (!hasColorMatch && wildDrawFour != null) {
+            return wildDrawFour;
+        }
+
+        // 3️⃣ Pick randomly among other action/wild cards
+        if (!otherPlayable.isEmpty()) {
+            int index = (int) (Math.random() * otherPlayable.size());
+            return otherPlayable.get(index);
+        }
+
+        // 4️⃣ If nothing else, fallback to WildDrawFour (even if color match, just to not return null)
+        return wildDrawFour;
     }
 
     public static CardColor chooseMostCommonColor(Hand hand) {

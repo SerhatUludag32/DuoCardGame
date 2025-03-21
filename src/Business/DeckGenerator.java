@@ -23,18 +23,17 @@ public class DeckGenerator {
             cards.add(new DrawTwoCard(color));
         }
 
-        for (int i = 0; i < 4; i++) {
-            cards.add(new WildCard());
-            cards.add(new WildDrawFourCard());
+            cards.add(new WildCard(CardColor.RED));
+            cards.add(new WildDrawFourCard(CardColor.RED));
+        cards.add(new WildCard(CardColor.GREEN));
+        cards.add(new WildDrawFourCard(CardColor.GREEN));
+        cards.add(new WildCard(CardColor.BLUE));
+        cards.add(new WildDrawFourCard(CardColor.BLUE));
+        cards.add(new WildCard(CardColor.YELLOW));
+        cards.add(new WildDrawFourCard(CardColor.YELLOW));
 
-        }
+
     cards.add(new ShuffleHandsCard());
-
-        System.out.println("[DEBUG] 🃏 Printing full deck content:");
-        for (Card card : cards) {
-            System.out.println("  - " + card);
-        }
-        System.out.println("[DEBUG] Total cards generated: " + cards.size());
         return cards;
     }
 }
