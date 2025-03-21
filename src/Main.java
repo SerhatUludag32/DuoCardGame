@@ -3,26 +3,32 @@ import Business.GamePlay;
 import Business.DeckGenerator;
 import Data.CSVLogger;
 
-import java.util.List;
+import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
-        List<Player> players = List.of(
-                new Player("Can"),
-                new Player("Yusuf"),
-                new Player("Alp")
-        );
+        Random rand = new Random();
+        int numPlayers = rand.nextInt(3) + 2; // Randomly 2 to 4 players
+
+        List<Player> players = new ArrayList<>();
+        for (int i = 1; i <= numPlayers; i++) {
+            players.add(new Player("Player " + i));
+        }
+
+        System.out.println("🎮 Starting game with " + numPlayers + " players:");
+        for (Player p : players) {
+            System.out.println("🔹 " + p.getName());
+        }
 
         GamePlay gamePlay = new GamePlay(players);
 
-        // ✅ IMPORTANT: Load the deck BEFORE starting the game
+        // Initialize the deck
         gamePlay.initializeDeck(DeckGenerator.generateStandardDuoDeck());
 
-        // ✅ Create logger
+        // Create logger
         CSVLogger logger = new CSVLogger("game_log.csv");
 
-        // ✅ Start game with 7 cards per player
+        // Start the game
         gamePlay.startGame(7, logger);
-
     }
 }
