@@ -31,4 +31,9 @@ public abstract class Card {
     public String toString() {
         return color + " Card";
     }
+
+
+    public int getCardValueForDealer() {
+        return 0;
+    }
 }

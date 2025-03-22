@@ -27,6 +27,7 @@ public class Main {
 
         // Create logger
         CSVLogger logger = new CSVLogger("game_log.csv");
+        logger.setPlayerOrder(players);
 
         // Start the game
         gamePlay.startGame(7, logger);

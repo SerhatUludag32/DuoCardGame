@@ -7,32 +7,48 @@ import Interface.ILogger;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 public class CSVLogger implements ILogger {
     private final String filePath;
     private boolean isHeaderWritten = false;
 
+    private List<String> playerNames;
+
+
+
     public CSVLogger(String filePath) {
         this.filePath = filePath;
     }
 
-    public void logRound(Round round, List<Player> players, int roundNumber) {
+    public void setPlayerOrder(List<Player> players) {
+        playerNames = players.stream().map(Player::getName).toList();
+    }
+
+    @Override
+    public void logRound(Round round, List<Player> currentPlayers, int roundNumber) {
         try (FileWriter writer = new FileWriter(filePath, true)) {
-            // Write header only once
             if (!isHeaderWritten) {
                 writer.write("Round");
-                for (int i = 1; i <= players.size(); i++) {
-                    writer.write(", Player " + i);
+                for (String name : playerNames) {
+                    writer.write(", " + name);
                 }
                 writer.write("\n");
                 isHeaderWritten = true;
             }
 
-            // Write round data
             writer.write("Round " + roundNumber);
-            for (Player p : players) {
-                writer.write(", " + round.getPlayerScores().getOrDefault(p, 0));
+            Map<Player, Integer> scores = round.getPlayerScores();
+            for (String name : playerNames) {
+                Player match = currentPlayers.stream()
+                        .filter(p -> p.getName().equals(name))
+                        .findFirst()
+                        .orElse(null);
+
+                int points = match != null ? scores.getOrDefault(match, 0) : 0;
+                writer.write(", " + points);
             }
             writer.write("\n");
 
@@ -43,31 +59,17 @@ public class CSVLogger implements ILogger {
 
     public void logFinalWinner(Game game) {
         try (FileWriter writer = new FileWriter(filePath, true)) {
-            Round last = !game.getRounds().isEmpty() ? game.getRounds().get(game.getRounds().size() - 1) : null;
-            if (last != null && last.getRoundWinner() != null) {
-                writer.write("Winner, " + last.getRoundWinner().getName() + "\n");
-            } else {
-                writer.write("Winner, NOT FOUND (Check logic)\n");
+            Player winner = game.getPlayers().stream()
+                    .max(Comparator.comparingInt(Player::getScore))
+                    .orElse(null);
+
+            if (winner != null) {
+                writer.write("Winner, " + winner.getName() + "\n");
             }
+
         } catch (IOException e) {
             System.out.println("Failed to log winner: " + e.getMessage());
         }
     }
 }
 
-/*
-
-CSVLogger logger = new CSVLogger("game_log.csv");
-
-public void playRound(Game game, Round round) {
-    // Existing logic to play round...
-
-    // Log round immediately after it finishes
-    logger.logRound(round, game.getPlayerArray(), game.getRounds().size());
-
-    // Check if the game is over, log the final winner
-    if (game.isGameOver()) {
-        logger.logFinalWinner(game);
-    }
-}
- */

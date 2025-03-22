@@ -20,4 +20,9 @@ public class ReverseCard extends ActionCard {
     public String toString() {
         return color + " REVERSE";
     }
+
+    @Override
+    public int getCardValueForDealer() {
+        return 20;
+    }
 }

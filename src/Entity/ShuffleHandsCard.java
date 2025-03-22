@@ -15,7 +15,6 @@ public class ShuffleHandsCard extends ActionCard {
         mediator.setColor(chosen);
         this.setColor(chosen);
 
-        System.out.println("[DEBUG] " + playedBy.getName() + " played SHUFFLE HANDS and chose color: " + chosen);
     }
 
     @Override
@@ -28,7 +27,8 @@ public class ShuffleHandsCard extends ActionCard {
         return "SHUFFLE HANDS";
     }
 
-    public void setColor(CardColor color) {
-        this.color = color;
+    @Override
+    public int getCardValueForDealer() {
+        return 40;
     }
 }

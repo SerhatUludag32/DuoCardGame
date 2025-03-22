@@ -21,4 +21,9 @@ public class SkipCard extends ActionCard {
     public String toString() {
         return color + " SKIP";
     }
+
+    @Override
+    public int getCardValueForDealer() {
+        return 20;
+    }
 }

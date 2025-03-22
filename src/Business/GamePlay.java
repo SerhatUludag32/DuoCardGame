@@ -15,28 +15,9 @@ public class GamePlay implements GameMediator {
     public GamePlay(List<Player> players) {
         this.game = new Game(players);
         this.drawnPile = new DrawnPile();
-
         this.discardPile = new DiscardPile();
         this.currentRound = new Round();
         this.currentIndex = 0;
-    }
-
-    private boolean debug = true;
-
-
-    private void debugPrint(String msg) {
-        if (debug) {
-            System.out.println("[DEBUG] " + msg);
-        }
-    }
-
-    private String cardListString(List<Card> cards) {
-        if (cards.isEmpty()) return "  (empty)";
-        StringBuilder sb = new StringBuilder();
-        for (Card card : cards) {
-            sb.append("  - ").append(card).append("\n");
-        }
-        return sb.toString();
     }
 
     public void initializeDeck(List<Card> cards) {
@@ -54,12 +35,22 @@ public class GamePlay implements GameMediator {
 
         // Start with one card on discard pile
         Card first = drawnPile.drawCard();
-        if (first == null) {
-            throw new IllegalStateException("Deck is empty. Did you forget to call initializeDeck?");
+
+        // Redraw if Wild Draw Four
+        while (first instanceof WildDrawFourCard) {
+            drawnPile.addCard(first);
+            drawnPile.shuffle();
+            first = drawnPile.drawCard();
+            System.out.println("Initial card was Wild Draw Four → redrawn new card: " + first);
         }
+
         discardPile.addCard(first);
         currentRound.getTurn().setLastPlayedCard(first);
         currentRound.getTurn().setTurnColor(first.getColor());
+
+        handleInitialCard(first);
+
+        System.out.println("Starting card: " + first);
     }
 
     @Override
@@ -75,16 +66,54 @@ public class GamePlay implements GameMediator {
         currentRound.getTurn().setSkip(true);
     }
 
+    private void handleInitialCard(Card first) {
+        // Handle initial action card effects
+        if (first instanceof ReverseCard) {
+            currentRound.setDirection(RoundDirection.RIGHT);
+            System.out.println("Starting card is Reverse → direction set to RIGHT");
+        }
+
+        if (first instanceof SkipCard) {
+            currentRound.getTurn().setSkip(true);
+            currentIndex = getNextPlayerIndex(0); // skip left of dealer
+            System.out.println("Starting card is Skip → first player will be skipped");
+        }
+
+        if (first instanceof DrawTwoCard) {
+            Player target = game.getPlayers().get(getNextPlayerIndex(currentIndex));
+            drawCards(target, 2);
+            currentRound.getTurn().setSkip(true);
+            System.out.println("Starting card is Draw Two → " + target.getName() + " draws 2 cards and is skipped");
+        }
+
+        if (first instanceof ShuffleHandsCard shuffle) {
+            Player chooser = game.getPlayers().get(getNextPlayerIndex(0));
+            CardColor color = chooser.chooseColor();
+            shuffle.setColor(color);
+            currentRound.getTurn().setTurnColor(color);
+            System.out.println("Starting card is Shuffle Hands → " + chooser.getName() + " chose color: " + color);
+        }
+
+        if (first instanceof WildCard wild) {
+            Player chooser = game.getPlayers().get(getNextPlayerIndex(0));
+            CardColor color = chooser.chooseColor();
+            wild.setColor(color);
+            currentRound.getTurn().setTurnColor(color);
+            System.out.println("Starting card is Wild → " + chooser.getName() + " chose color: " + color);
+        }
+    }
+
     @Override
     public void reverseDirection() {
         RoundDirection dir = currentRound.getDirection();
-        RoundDirection reversed = (dir == RoundDirection.LEFT) ? RoundDirection.RIGHT : RoundDirection.LEFT;
-        currentRound.setDirection(reversed);
+        currentRound.setDirection(dir == RoundDirection.LEFT ? RoundDirection.RIGHT : RoundDirection.LEFT);
+        System.out.println("Direction reversed! Now: " + currentRound.getDirection());
     }
 
     @Override
     public void setColor(CardColor color) {
         currentRound.getTurn().setTurnColor(color);
+        System.out.println("Color changed to: " + color);
     }
 
     @Override
@@ -92,11 +121,9 @@ public class GamePlay implements GameMediator {
         List<Player> players = game.getPlayers();
         int idx = players.indexOf(currentPlayer);
         RoundDirection dir = currentRound.getDirection();
-
         int nextIdx = (dir == RoundDirection.LEFT)
                 ? (idx - 1 + players.size()) % players.size()
                 : (idx + 1) % players.size();
-
         return players.get(nextIdx);
     }
 
@@ -113,76 +140,96 @@ public class GamePlay implements GameMediator {
     @Override
     public void shuffleHands(Player playedBy) {
         List<Player> players = game.getPlayers();
-
-        // 1. Collect all cards from every player
-        List<Card> shufflePile = new ArrayList<>();
+        List<Card> pile = new ArrayList<>();
         for (Player p : players) {
-            shufflePile.addAll(p.getHand().getCards());
-            p.resetHand();  // clear each player's hand
+            pile.addAll(p.getHand().getCards());
+            p.resetHand();
         }
+        Collections.shuffle(pile);
 
-        // 2. Shuffle the pile
-        Collections.shuffle(shufflePile);
-
-        // 3. Determine starting player (next to the left)
-        int currentIndex = getNextPlayerIndex(game.getPlayers().indexOf(playedBy));
-
-        // 4. Deal cards one-by-one in current round direction
-        while (!shufflePile.isEmpty()) {
-            Player currentPlayer = players.get(currentIndex);
-            Card drawn = shufflePile.removeFirst();
-            currentPlayer.getHand().addCard(drawn);
-
+        int currentIndex = getNextPlayerIndex(players.indexOf(playedBy));
+        while (!pile.isEmpty()) {
+            Player p = players.get(currentIndex);
+            p.getHand().addCard(pile.remove(0));
             currentIndex = getNextPlayerIndex(currentIndex);
         }
+        System.out.println(playedBy.getName() + " played SHUFFLE HANDS and redistributed hands.");
     }
 
     private int getNextPlayerIndex(int fromIndex) {
         int size = game.getPlayers().size();
-        if (currentRound.getDirection() == RoundDirection.LEFT) {
-            return (fromIndex - 1 + size) % size;
-        } else {
-            return (fromIndex + 1) % size;
-        }
+        return currentRound.getDirection() == RoundDirection.LEFT
+                ? (fromIndex - 1 + size) % size
+                : (fromIndex + 1) % size;
     }
 
-
     private void reshuffleFromDiscard() {
-        Card topCard = discardPile.getTopCard();
+        Card top = discardPile.getTopCard();
         List<Card> toReshuffle = new ArrayList<>(discardPile.getCards());
-        toReshuffle.remove(topCard);
+        toReshuffle.remove(top);
 
         discardPile.getCards().clear();
-        discardPile.addCard(topCard);
-
+        discardPile.addCard(top);
         drawnPile.addCards(toReshuffle);
         drawnPile.shuffle();
     }
 
+    private void selectDealer() {
+        Map<Player, Card> drawnCards = new HashMap<>();
+
+        for (Player p : game.getPlayers()) {
+            Card drawn = drawnPile.drawCard();
+            drawnCards.put(p, drawn);
+            System.out.println(p.getName() + " drew " + drawn);
+        }
+
+        Player dealer = null;
+        int maxValue = -1;
+
+        for (Map.Entry<Player, Card> entry : drawnCards.entrySet()) {
+            int value = entry.getValue().getCardValueForDealer();
+            if (value > maxValue) {
+                dealer = entry.getKey();
+                maxValue = value;
+            }
+        }
+
+        drawnPile.addCards(new ArrayList<>(drawnCards.values()));
+        drawnPile.shuffle();
+
+        List<Player> players = game.getPlayers();
+        while (!players.getFirst().equals(dealer)) {
+            Player first = players.removeFirst();
+            players.add(first);
+        }
+
+        System.out.println("Dealer: " + dealer.getName());
+    }
+
     public void startGame(int handSize, Interface.ILogger logger) {
-        debugPrint("🎯 Checking game over condition: Scores = " +
-                game.getPlayers().stream().map(p -> p.getName() + "=" + p.getScore()).toList());
-        debugPrint("🎯 isGameOver() = " + game.isGameOver());
+        selectDealer();
         while (!game.isGameOver()) {
             currentRound = new Round();
             game.addRound(currentRound);
             currentIndex = 0;
 
-            debugPrint("\n=======================");
-            debugPrint("STARTING ROUND " + game.getRounds().size());
-            debugPrint("=======================\n");
-
             resetPlayerHands();
             discardPile.clear();
             initializeDeck(DeckGenerator.generateStandardDuoDeck());
-            debugPrint("Draw pile before dealing: " + drawnPile.getCards().size());
-            debugPrint("Discard pile before dealing: " + discardPile.getCards().size());
             dealCards(handSize);
 
+            // Print players' initial hands
+            System.out.println("Initial hands:");
             for (Player p : game.getPlayers()) {
-                debugPrint(p.getName() + "'s starting hand:");
-                debugPrint(cardListString(p.getHand().getCards()));
+                System.out.print(p.getName() + "'s hand: ");
+                List<Card> cards = p.getHand().getCards();
+                for (int i = 0; i < cards.size(); i++) {
+                    System.out.print(cards.get(i));
+                    if (i != cards.size() - 1) System.out.print(", ");
+                }
+                System.out.println();
             }
+            System.out.println();
 
             runRoundLoop();
 
@@ -192,43 +239,37 @@ public class GamePlay implements GameMediator {
                 int points = calculateScore(roundWinner);
                 roundWinner.addPoints(points);
                 currentRound.setWinningPoints(points);
+                System.out.println("Round End: " + roundWinner.getName() + " won the round with " + points + " points.");
 
-                debugPrint("\n✅ ROUND END: " + roundWinner.getName() + " won the round!");
-                debugPrint("🏆 Points earned: " + points);
+                Map<Player, Integer> scores = new HashMap<>();
+                for (Player p : game.getPlayers()) {
+                    scores.put(p, p == roundWinner ? points : 0);
+                }
+                currentRound.setPlayerScores(scores);
             }
-
-            Map<Player, Integer> scores = new HashMap<>();
-            debugPrint("\n📊 Total scores:");
-            for (Player p : game.getPlayers()) {
-                scores.put(p, p.getScore());
-                debugPrint(p.getName() + ": " + p.getScore());
-            }
-            currentRound.setPlayerScores(scores);
 
             logger.logRound(currentRound, game.getPlayers(), game.getRounds().size());
         }
 
-        // ✅ Final debug output before logging winner
-        debugPrint("🏁 Final check: " + game.getPlayers().stream()
-                .map(p -> p.getName() + " - " + p.getScore())
-                .toList());
-
-        debugPrint("✅ Game Over. Final round complete.");
+        Player finalWinner = game.getPlayers().stream().filter(Player::hasWon).findFirst().orElse(null);
+        if (finalWinner != null) {
+            System.out.println(finalWinner.getName() + " won the game");
+            System.out.println("Score: " + finalWinner.getScore());
+        }
 
         logger.logFinalWinner(game);
     }
 
+
+
     private void runRoundLoop() {
         while (true) {
             Player currentPlayer = game.getPlayers().get(currentIndex);
-
-            debugPrint("\n--- " + currentPlayer.getName() + "'s turn ---");
-            debugPrint("Current hand:");
-            debugPrint(cardListString(currentPlayer.getHand().getCards()));
-            debugPrint("Top of discard pile: " + currentRound.getTurn().getLastPlayedCard());
+            System.out.println("Direction: " + currentRound.getDirection());
+            System.out.println(currentPlayer.getName() + "'s turn");
 
             if (currentRound.getTurn().isSkip()) {
-                debugPrint("🚫 Turn is skipped!");
+                System.out.println("Turn skipped.");
                 currentRound.getTurn().setSkip(false);
             } else {
                 Card topCard = currentRound.getTurn().getLastPlayedCard();
@@ -239,13 +280,12 @@ public class GamePlay implements GameMediator {
                     discardPile.addCard(toPlay);
                     currentRound.getTurn().setLastPlayedCard(toPlay);
 
-                    debugPrint("✅ Played: " + toPlay);
+                    System.out.println("Play card: " + toPlay);
 
                     if (toPlay instanceof ActionCard actionCard) {
-                        actionCard.action(this, currentPlayer); // may call setColor
+                        actionCard.action(this, currentPlayer);
                     }
 
-                    // ✅ Don't overwrite chosen color from Wild/ShuffleHands
                     if (!(toPlay instanceof WildCard)) {
                         currentRound.getTurn().setTurnColor(toPlay.getColor());
                     }
@@ -253,53 +293,36 @@ public class GamePlay implements GameMediator {
                     if (currentPlayer.isHandEmpty()) break;
 
                 } else {
-                    debugPrint("🛑 No playable card, drawing 1...");
+                    System.out.println("Draw card...");
                     if (drawnPile.isEmpty()) reshuffleFromDiscard();
                     Card drawn = drawnPile.drawCard();
                     if (drawn != null) {
                         currentPlayer.getHand().addCard(drawn);
-                        debugPrint("🎴 Drew: " + drawn);
-                    } else {
-                        debugPrint("❌ Draw pile empty, couldn't draw!");
+                        System.out.println("Draw card: " + drawn);
                     }
                 }
             }
-
-            debugPrint("Updated hand:");
-            debugPrint(cardListString(currentPlayer.getHand().getCards()));
-            debugPrint("Discard pile top: " + discardPile.getTopCard());
-            debugPrint("Draw pile size: " + drawnPile.getCards().size());
 
             currentIndex = getNextPlayerIndex();
         }
     }
 
     private Player checkRoundWinner() {
-        for (Player player : game.getPlayers()) {
-            if (player.isHandEmpty()) {
-                return player;
-            }
-        }
-        return null;
+        return game.getPlayers().stream().filter(Player::isHandEmpty).findFirst().orElse(null);
     }
 
     private int calculateScore(Player winner) {
-        int total = 0;
-        for (Player p : game.getPlayers()) {
-            if (p != winner) {
-                total += p.getHand().getTotalPoints();
-            }
-        }
-        return total;
+        return game.getPlayers().stream()
+                .filter(p -> !p.equals(winner))
+                .mapToInt(p -> p.getHand().getTotalPoints())
+                .sum();
     }
 
     private int getNextPlayerIndex() {
         int size = game.getPlayers().size();
-        if (currentRound.getDirection() == RoundDirection.LEFT) {
-            return (currentIndex - 1 + size) % size;
-        } else {
-            return (currentIndex + 1) % size;
-        }
+        return currentRound.getDirection() == RoundDirection.LEFT
+                ? (currentIndex - 1 + size) % size
+                : (currentIndex + 1) % size;
     }
 
     private void resetPlayerHands() {
@@ -309,8 +332,6 @@ public class GamePlay implements GameMediator {
     }
 
     private void reshuffleDeckIfNeeded() {
-        if (drawnPile.isEmpty()) {
-            reshuffleFromDiscard();
-        }
+        if (drawnPile.isEmpty()) reshuffleFromDiscard();
     }
 }

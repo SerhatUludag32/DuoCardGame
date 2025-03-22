@@ -22,4 +22,9 @@ public class NumberCard extends Card {
     public String toString() {
         return color + " " + number;
     }
+
+    @Override
+    public int getCardValueForDealer() {
+        return this.number;
+    }
 }

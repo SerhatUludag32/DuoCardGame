@@ -23,4 +23,9 @@ public class DrawTwoCard extends ActionCard {
     public String toString() {
         return color + " DRAW TWO";
     }
+
+    @Override
+    public int getCardValueForDealer() {
+        return 20;
+    }
 }

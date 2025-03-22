@@ -27,4 +27,9 @@ public class WildDrawFourCard extends ActionCard {
     public String toString() {
         return "WILD DRAW FOUR (" + (color != null ? color : "unset") + ")";
     }
+
+    @Override
+    public int getCardValueForDealer() {
+        return 50;
+    }
 }

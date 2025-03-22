@@ -16,4 +16,14 @@ public class Hand extends Deck {
     public int size() {
         return cards.size();
     }
+
+    @Override
+    public String toString() {
+        if (cards.isEmpty()) return "(empty hand)";
+        StringBuilder sb = new StringBuilder();
+        for (Card card : cards) {
+            sb.append(card).append(", ");
+        }
+        return sb.substring(0, sb.length() - 2); // remove trailing comma and space
+    }
 }
