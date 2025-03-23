@@ -11,6 +11,6 @@ public class DrawnPile extends Deck {
     }
 
     public void clear() {
-        cards.clear();
+        getCards().clear();
     }
 }

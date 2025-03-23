@@ -23,7 +23,7 @@ public class WildCard extends ActionCard {
 
     @Override
     public String toString() {
-        return "WILD (" + (color != null ? color : "unset") + ")";
+        return "WILD (" + (getColor() != null ? getColor() : "unset") + ")";
     }
     @Override
     public int getCardValueForDealer() {

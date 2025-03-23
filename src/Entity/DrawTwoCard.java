@@ -16,12 +16,12 @@ public class DrawTwoCard extends ActionCard {
 
     @Override
     public boolean canBePlayedOn(Card topCard) {
-        return this.color == topCard.getColor() || topCard instanceof DrawTwoCard;
+        return getColor() == topCard.getColor() || topCard instanceof DrawTwoCard;
     }
 
     @Override
     public String toString() {
-        return color + " DRAW TWO";
+        return getColor() + " DRAW TWO";
     }
 
     @Override

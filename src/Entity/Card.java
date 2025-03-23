@@ -1,8 +1,8 @@
 package Entity;
 
 public abstract class Card {
-    protected int value;
-    protected CardColor color;
+    private int value;
+    private CardColor color;
 
     public Card(int value, CardColor color) {
         this.value = value;

@@ -14,13 +14,13 @@ public class NumberCard extends Card {
 
     @Override
     public boolean canBePlayedOn(Card topCard) {
-        return this.color == topCard.getColor()
+        return getColor() == topCard.getColor()
                 || (topCard instanceof NumberCard && this.number == ((NumberCard) topCard).getNumber());
     }
 
     @Override
     public String toString() {
-        return color + " " + number;
+        return getColor() + " " + number;
     }
 
     @Override

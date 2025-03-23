@@ -6,13 +6,13 @@ public class DiscardPile extends Deck {
     }
 
     public Card getTopCard() {
-        if (!cards.isEmpty()) {
-            return cards.getLast();
+        if (!getCards().isEmpty()) {
+            return getCards().getLast();
         }
         return null;
     }
 
     public void clear() {
-        cards.clear();
+        getCards().clear();
     }
 }

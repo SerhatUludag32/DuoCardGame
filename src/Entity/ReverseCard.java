@@ -13,12 +13,12 @@ public class ReverseCard extends ActionCard {
 
     @Override
     public boolean canBePlayedOn(Card topCard) {
-        return this.color == topCard.getColor() || topCard instanceof ReverseCard;
+        return getColor() == topCard.getColor() || topCard instanceof ReverseCard;
     }
 
     @Override
     public String toString() {
-        return color + " REVERSE";
+        return getColor() + " REVERSE";
     }
 
     @Override

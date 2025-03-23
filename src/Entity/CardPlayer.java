@@ -3,6 +3,7 @@ package Entity;
 import java.util.*;
 
 public class CardPlayer {
+
     public static Card choosePlayableCard(Hand hand, Card topCard) {
         List<Card> playable = new ArrayList<>();
         List<NumberCard> numberCards = new ArrayList<>();

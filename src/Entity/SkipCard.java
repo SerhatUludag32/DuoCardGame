@@ -14,12 +14,12 @@ public class SkipCard extends ActionCard {
 
     @Override
     public boolean canBePlayedOn(Card topCard) {
-        return this.color == topCard.getColor() || topCard instanceof SkipCard;
+        return getColor() == topCard.getColor() || topCard instanceof SkipCard;
     }
 
     @Override
     public String toString() {
-        return color + " SKIP";
+        return getColor() + " SKIP";
     }
 
     @Override
